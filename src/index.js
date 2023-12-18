@@ -7,16 +7,16 @@ const PORT = 3000;
 app.use(cors());
 // Configuración de la conexión a MySQL
 const connection = mysql.createConnection({
-  host: 'localhost',     // Cambia a la dirección de tu servidor MySQL
-  user: 'root',    // Cambia a tu nombre de usuario de MySQL
-  password: 'Lu13edu4rd0', // Cambia a tu contraseña de MySQL
-  database: 'sis_doctors' // Cambia a tu nombre de base de datos
+  host: 'byjvth99hnme7egwpoar-mysql.services.clever-cloud.com',     // Cambia a la dirección de tu servidor MySQL
+  user: 'ug2iovfdkumobqit',    // Cambia a tu nombre de usuario de MySQL
+  password: 'KKQ0bqIpbrqbf3wlTILr', // Cambia a tu contraseña de MySQL
+  database: 'byjvth99hnme7egwpoar' // Cambia a tu nombre de base de datos
 });
 
 // Conectar a MySQL
 connection.connect((err) => {
   if (err) {
-    console.error('Error al conectar a MySQL: ' + err.stack);
+    console.error('Error al conectar a MYSQK Remoto: ' + err.stack);
     return;
   }
   console.log('Conectado a MySQL con el ID ' + connection.threadId);
