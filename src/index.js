@@ -1,7 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
-const cors = require('cors');
-const { log } = require('console');
+const cors = require('cors')
 const app = express();
 const PORT = 3000;
 
@@ -228,18 +227,19 @@ app.post('/pacientes', (req, res) => {
       }
 
       res.json({ id: results.insertId, ...nuevoPaciente });
+      connection.end((err) => {
+        if (err) {
+          console.error('Error al cerrar la conexión:', err.message);
+        } else {
+          console.log('Conexión cerrada.');
+        }
+      });
     });
   } catch (error) {
     console.error('Error en el manejo de la solicitud:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   } finally {
-    connection.end((err) => {
-      if (err) {
-        console.error('Error al cerrar la conexión:', err.message);
-      } else {
-        console.log('Conexión cerrada.');
-      }
-    });
+
   }
 });
 
