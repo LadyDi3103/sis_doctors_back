@@ -37,6 +37,7 @@ app.get('/medicos', (req, res) => {
     });
   });
 
+  
   // Obtener todos los pacientes
 app.get('/pacientes', (req, res) => {
   connection.query('SELECT * FROM pacientes', (error, results, fields) => {
