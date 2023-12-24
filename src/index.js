@@ -96,7 +96,7 @@ app.post('/pacientes', (req, res) => {
           alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, 
           ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, 
           DES=?, MM=?, ALM=?, LON=?, CEN=?, FDS=?, Dlk=?, Likes=?, 
-          Tratamientos=?`;
+          Tratamientos=?,  Email=? `;
 
     const values = Object.values(nuevoPaciente);
 
@@ -130,7 +130,7 @@ app.put('/pacientes/:id', async (req, res) => {
     const pacienteId = req.params.id;
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, DES=?, MM=?, ALM=?, LON=?, Tratamientos=? WHERE IdPaciente=?`;
+    const sqlQuery = `UPDATE MAE_Paciente SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, DES=?, MM=?, ALM=?, LON=?, Tratamientos=?, Email=? WHERE IdPaciente=?`;
     const datos = Object.values(datosActualizados);
     const valuesArray = [...datos, pacienteId];
 
