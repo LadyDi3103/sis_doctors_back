@@ -41,24 +41,36 @@ app.get('/medicos', (req, res) => {
 
 });
 
+// ************************************************************************************************
 
 // Obtener todos los pacientes
 app.get('/pacientes', (req, res) => {
-  try {
-    // Realizar una consulta a la base de datos
-    pool.query('Select Distinct Paciente, IdTipoDocumento, NumeroDocumento As Documento, Num_Cel As Telefono, Domicilio As Direccion From MAE_Paciente', (error, results, fields) => {
+  try{
+    pool.query('SELECT * FROM MAE_Paciente', function (error, results, fields) {
       if (error) throw error;
-      res.json(results);
+      res.json(results); // Enviar los resultados como respuesta JSON
     });
-  } catch (error) {
-
-  } finally {
-    // closeConnection(connection)
+  }catch (error){
+    console.log(error, "EL ERROR");
   }
+  
 });
 
 
-// Obtener un paciente por ID
+
+
+// ELIMINAR paciente por número de DOCUMENTO
+app.post('/eliminarPaciente', (req, res) => {
+  const tipDocumPaciente = req.body.tipDocum;
+  const codDocumPaciente = req.body.codDocum;
+  pool.query('DELETE FROM MAE_Paciente WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ', [tipDocumPaciente, codDocumPaciente], (error, results, fields) => {
+    if (error) throw error;
+    return res.send({message:'Paciente eliminado correctamente',results});
+  });
+});
+
+
+
 app.get('/pacientes/:id', (req, res) => {
   const pacienteId = req.params.id;
   pool.query('SELECT * FROM pacientes WHERE id = ?', [pacienteId], (error, results, fields) => {
@@ -136,16 +148,16 @@ app.put('/pacientes/:id', async (req, res) => {
   }
 });
 
-
-
 // Eliminar un paciente por ID
-app.delete('/pacientes/:id', (req, res) => {
-  const pacienteId = req.params.id;
-  pool.query('DELETE FROM MAE_Paciente WHERE IdPaciente = ?', [pacienteId], (error, results, fields) => {
-    if (error) throw error;
-    return res.send({message:'Paciente eliminado correctamente',results});
-  });
-});
+// app.delete('/eliminarPaciente', (req, res) => {
+//   console.log(req.params);
+//   const tipDocumPaciente = req.params.IdTipoDocumento;
+//   const codDocumPaciente = req.params.paciente.Documento;
+//   pool.query('DELETE FROM MAE_Paciente WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ', [tipDocumPaciente, codDocumPaciente], (error, results, fields) => {
+//     if (error) throw error;
+//     return res.send({message:'Paciente eliminado correctamente',results});
+//   });
+// });
 
 
 

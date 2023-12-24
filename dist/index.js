@@ -7,6 +7,9 @@ var app = express();
 var PORT = 3000;
 app.use(cors());
 // Configuración de la conexión a MySQL
+// COMENTADO
+// app.use(express.json()); 
+
 var connection = mysql.createConnection({
   host: 'byjvth99hnme7egwpoar-mysql.services.clever-cloud.com',
   // Cambia a la dirección de tu servidor MySQL
@@ -31,6 +34,7 @@ app.get('/', function (req, res) {
   // Puedes realizar consultas a la base de datos aquí
   res.send('¡Hola, mundo!');
 });
+
 app.get('/medicos', function (req, res) {
   // Realizar una consulta a la base de datos
   connection.query('SELECT * FROM medicos', function (error, results, fields) {
@@ -38,6 +42,9 @@ app.get('/medicos', function (req, res) {
     res.json(results); // Enviar los resultados como respuesta JSON
   });
 });
-app.listen(PORT, function () {
+
+
+app.listen(PORT, () =>{
   console.log("Servidor corriendo en http://localhost:".concat(PORT));
 });
+
