@@ -24,11 +24,9 @@ app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
 
-// Obtener todos los médicos
+// T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
   try {
-    // connection = createConnection()
-    // Realizar una consulta a la base de datos
     pool.query('SELECT * FROM medicos', (error, results, fields) => {
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
@@ -36,10 +34,43 @@ app.get('/medicos', (req, res) => {
   } catch (error) {
 
   } finally {
-    // closeConnection(connection)
+
   }
 
 });
+
+// C R E A  un  D O C T O R  N U E V O
+app.post('/doctores', (req, res) => {
+  try {
+    const nuevoDoctor = req.body;
+    const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
+
+    const values = Object.values(nuevoDoctor);
+
+    pool.query(sqlQuery, values, (error, results) => {
+      if (error) {
+        // console.error('Error al ejecutar la consulta:', error.message);
+        throw error;
+      }
+      res.json({
+        id: results.insertId,
+        ...nuevoDoctor
+      });
+    });
+
+  } catch (error) {
+    console.error('Error en el manejo de la solicitud:', error.message);
+    res.status(500).json({
+      error: 'Error interno del servidor'
+    });
+  } finally {
+    console.log("------------------------------------------------------------------");
+    console.log("ENTRA");
+    console.log("------------------------------------------------------------------");
+    // closeConnection(connection)
+  }
+});
+
 
 // ************************************************************************************************
 
@@ -59,7 +90,7 @@ app.get('/pacientes', (req, res) => {
 
 
 
-// ELIMINAR paciente por número de DOCUMENTO
+// E L I M I N A R  paciente por número de DOCUMENTO
 app.post('/eliminarPaciente', (req, res) => {
   const tipDocumPaciente = req.body.tipDocum;
   const codDocumPaciente = req.body.codDocum;
@@ -68,7 +99,6 @@ app.post('/eliminarPaciente', (req, res) => {
     return res.send({message:'Paciente eliminado correctamente',results});
   });
 });
-
 
 
 app.get('/pacientes/:id', (req, res) => {
@@ -82,6 +112,8 @@ app.get('/pacientes/:id', (req, res) => {
     }
   });
 });
+
+// C R E A  P A C I E N T E
 
 app.post('/pacientes', (req, res) => {
   try {
@@ -124,15 +156,16 @@ app.post('/pacientes', (req, res) => {
   }
 });
 
-// editar un paciente por ID ACTUALIZAR
-app.put('/pacientes/:id', async (req, res) => {
+// E D I T  P A C I E N T E S
+app.patch('/pacientes/:id', async (req, res) => {
   try {
     const pacienteId = req.params.id;
+
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, DES=?, MM=?, ALM=?, LON=?, Tratamientos=?, Email=? WHERE IdPaciente=?`;
-    const datos = Object.values(datosActualizados);
-    const valuesArray = [...datos, pacienteId];
+    const sqlQuery = `UPDATE MAE_Paciente SET IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
+
+    const valuesArray = [...Object.values(datosActualizados), pacienteId];
 
     pool.query(sqlQuery, valuesArray, (error, results, fields) => {
       if (error) {
@@ -148,16 +181,6 @@ app.put('/pacientes/:id', async (req, res) => {
   }
 });
 
-// Eliminar un paciente por ID
-// app.delete('/eliminarPaciente', (req, res) => {
-//   console.log(req.params);
-//   const tipDocumPaciente = req.params.IdTipoDocumento;
-//   const codDocumPaciente = req.params.paciente.Documento;
-//   pool.query('DELETE FROM MAE_Paciente WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ', [tipDocumPaciente, codDocumPaciente], (error, results, fields) => {
-//     if (error) throw error;
-//     return res.send({message:'Paciente eliminado correctamente',results});
-//   });
-// });
 
 
 
