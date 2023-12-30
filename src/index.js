@@ -39,8 +39,8 @@ app.get('/medicos', (req, res) => {
 
 });
 
-// C R E A  un  D O C T O R  N U E V O
-app.post('/doctores', (req, res) => {
+// C R E A  D O C T O R  N U E V O
+app.post('/medicos', (req, res) => {
   try {
     const nuevoDoctor = req.body;
     const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
@@ -71,6 +71,42 @@ app.post('/doctores', (req, res) => {
   }
 });
 
+// E L I M I N A R   D O C T O R   P O R   D O C U M E N T O
+app.post('/eliminarMedico', (req, res) => {
+  const tipDocumDoctor = req.body.tipDocum;
+  const codDocumDoctor = req.body.codDocum;
+  pool.query('DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
+    if (error) throw error;
+    return res.send({message:'Doctor eliminado correctamente',results});
+  });
+});
+
+// E D I T   D A T A   D O C T O R E S
+app.patch('/medicos/:id', async (req, res) => {
+  try {
+    const doctorId = req.params.id;
+
+    const datosActualizados = req.body;
+
+    const sqlQuery = `UPDATE medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
+
+    const valuesArray = [...Object.values(datosActualizados), doctorId];
+
+    pool.query(sqlQuery, valuesArray, (error, results, fields) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).send('Error al actualizar el medico');
+      }
+
+      res.json(results);
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al actualizar el médico');
+  }
+});
+
+
 
 // ************************************************************************************************
 
@@ -86,8 +122,6 @@ app.get('/pacientes', (req, res) => {
   }
   
 });
-
-
 
 
 // E L I M I N A R  paciente por número de DOCUMENTO
@@ -163,7 +197,7 @@ app.patch('/pacientes/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
+    const sqlQuery = `UPDATE MAE_Paciente SET id_medico= ?, IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
 
     const valuesArray = [...Object.values(datosActualizados), pacienteId];
 
