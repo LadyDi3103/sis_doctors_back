@@ -96,7 +96,6 @@ app.post('/eliminarMedico', async (req, res) => {
     return res.status(500).send({ message: 'Error al eliminar el doctor', error });
   }
 });
-
 async function executeQuery(query, params) {
   return new Promise((resolve, reject) => {
     pool.query(query, params, (error, results, fields) => {
