@@ -43,8 +43,8 @@ app.get('/medicos', (req, res) => {
 app.post('/medicos', (req, res) => {
   try {
     const nuevoDoctor = req.body;
-    const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
-
+    // const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
+    const sqlQuery = `INSERT INTO medicos SET nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
     const values = Object.values(nuevoDoctor);
 
     pool.query(sqlQuery, values, (error, results) => {
@@ -72,14 +72,42 @@ app.post('/medicos', (req, res) => {
 });
 
 // E L I M I N A R   D O C T O R   P O R   D O C U M E N T O
-app.post('/eliminarMedico', (req, res) => {
-  const tipDocumDoctor = req.body.tipDocum;
-  const codDocumDoctor = req.body.codDocum;
-  pool.query('DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
-    if (error) throw error;
-    return res.send({message:'Doctor eliminado correctamente',results});
-  });
+// app.post('/eliminarMedico', (req, res) => {
+//   const tipDocumDoctor = req.body.tipDocum;
+//   const codDocumDoctor = req.body.codDocum;
+//   pool.query('DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
+//     if (error) throw error;
+//     return res.send({message:'Doctor eliminado correctamente',results});
+//   });
+// });
+
+app.post('/eliminarMedico', async (req, res) => {
+  try {
+    const tipDocumDoctor = req.body.tipDocum;
+    const codDocumDoctor = req.body.codDocum;
+    
+    const query = 'DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ';
+    
+    const results = await executeQuery(query, [tipDocumDoctor, codDocumDoctor]);
+
+    return res.send({ message: 'Doctor eliminado correctamente', results });
+  } catch (error) {
+    console.error('Error al eliminar el doctor:', error);
+    return res.status(500).send({ message: 'Error al eliminar el doctor', error });
+  }
 });
+
+async function executeQuery(query, params) {
+  return new Promise((resolve, reject) => {
+    pool.query(query, params, (error, results, fields) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
 
 // E D I T   D A T A   D O C T O R E S
 app.patch('/medicos/:id', async (req, res) => {
@@ -197,7 +225,7 @@ app.patch('/pacientes/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET id_medico= ?, IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
+    const sqlQuery = `UPDATE MAE_Paciente SET IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
 
     const valuesArray = [...Object.values(datosActualizados), pacienteId];
 
