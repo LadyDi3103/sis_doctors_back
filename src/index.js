@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
 // T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
   try {
-    pool.query('SELECT * FROM medicos', (error, results, fields) => {
+    pool.query('SELECT * FROM Medicos', (error, results, fields) => {
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
     });
@@ -43,7 +43,7 @@ app.get('/medicos', (req, res) => {
 app.post('/medicos', (req, res) => {
   try {
     const nuevoDoctor = req.body;
-    const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
+    const sqlQuery = `INSERT INTO Medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
 
     const values = Object.values(nuevoDoctor);
 
@@ -75,12 +75,50 @@ app.post('/medicos', (req, res) => {
 app.post('/eliminarMedico', (req, res) => {
   const tipDocumDoctor = req.body.tipDocum;
   const codDocumDoctor = req.body.codDocum;
-  pool.query('DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
+  pool.query('DELETE FROM Medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
     if (error) throw error;
     return res.send({message:'Doctor eliminado correctamente',results});
   });
 });
 
+// CITAS 
+
+app.get('/citas', (req, res) => {
+  try {
+    pool.query('SELECT * FROM citas', (error, results, fields) => {
+      if (error) throw error;
+      res.json({result:results}).status(200); // Enviar los resultados como respuesta JSON
+    });
+  } catch (error) {
+    res.json({
+        message:'Ocurred error: ',
+        error: error.message
+    }).status(500)
+    console.error('Error',error.message)
+  } finally {
+
+  }
+});
+app.post('/citas', (req, res) => {
+  const { fecha, motivo,id_medico,id_paciente } = req.body;
+  console.log(req.body);
+  // Verificar si se proporcionaron fecha y motivo
+  if (!fecha || !motivo || !id_medico || !id_paciente) {
+    return res.status(400).json({ error: 'faltan datos obligatorios' });
+  }
+
+  // Insertar la cita en la base de datos
+  const insertQuery = 'INSERT INTO citas (id_medico,id_paciente,fecha, motivo) VALUES (?,?,?,?)';
+  pool.query(insertQuery, [id_medico,id_paciente,fecha, motivo], (err, result) => {
+    if (err) {
+      console.error('Error al insertar la cita:', err);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+    console.log('Cita creada exitosamente');
+    res.status(201).json({ message: 'Cita creada exitosamente' });
+  });
+});
 // E D I T   D A T A   D O C T O R E S
 app.patch('/medicos/:id', async (req, res) => {
   try {
@@ -88,7 +126,7 @@ app.patch('/medicos/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
+    const sqlQuery = `UPDATE Medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
 
     const valuesArray = [...Object.values(datosActualizados), doctorId];
 
