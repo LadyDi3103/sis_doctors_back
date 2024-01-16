@@ -99,17 +99,18 @@ app.get('/citas', (req, res) => {
 
   }
 });
+
 app.post('/citas', (req, res) => {
-  const { fecha, motivo,id_medico,id_paciente } = req.body;
+  const { fecha, motivo,idMedico,idPaciente } = req.body;
   console.log(req.body);
   // Verificar si se proporcionaron fecha y motivo
-  if (!fecha || !motivo || !id_medico || !id_paciente) {
+  if (!fecha || !motivo || !idMedico || !idPaciente) {
     return res.status(400).json({ error: 'faltan datos obligatorios' });
   }
 
   // Insertar la cita en la base de datos
   const insertQuery = 'INSERT INTO citas (id_medico,id_paciente,fecha, motivo) VALUES (?,?,?,?)';
-  pool.query(insertQuery, [id_medico,id_paciente,fecha, motivo], (err, result) => {
+  pool.query(insertQuery, [idMedico,idPaciente,fecha, motivo], (err, result) => {
     if (err) {
       console.error('Error al insertar la cita:', err);
       return res.status(500).json({ error: 'Error interno del servidor' });
@@ -120,6 +121,18 @@ app.post('/citas', (req, res) => {
   });
 });
 
+app.get('/citasPaciente/:id_paciente',(req,res)=>{
+  const {id_paciente} = req.params;
+  console.log(id_paciente);
+  try{
+    pool.query('select * from citas inner join MAE_Paciente ON citas.id_paciente = MAE_Paciente.IdPaciente where citas.id_paciente = ?', [id_paciente], function (error, results, fields) {
+      if (error) throw error;
+      res.json({results});
+    });
+  }catch (error){
+    console.log(error, "EL ERROR");
+  }
+})
 // E D I T   D A T A   D O C T O R E S
 app.patch('/medicos/:id', async (req, res) => {
   try {
