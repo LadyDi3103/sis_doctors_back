@@ -201,46 +201,82 @@ app.get('/pacientes/:id', (req, res) => {
 
 // C R E A  P A C I E N T E
 
+// app.post('/pacientes', (req, res) => {
+//   try {
+//     //  connection =createConnection()
+//     const nuevoPaciente = req.body;
+//     const sqlQuery = `
+//       INSERT INTO MAE_Paciente 
+//       SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, 
+//           psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, 
+//           Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, 
+//           Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, 
+//           alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, 
+//           ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, 
+//           DES=?, MM=?, ALM=?, LON=?, CEN=?, FDS=?, Dlk=?, Likes=?, 
+//           Tratamientos=?,  Email=? `;
+
+//     const values = Object.values(nuevoPaciente);
+
+//     pool.query(sqlQuery, values, (error, results) => {
+//       if (error) {
+//         // console.error('Error al ejecutar la consulta:', error.message);
+//         throw error;
+//       }
+//       res.json({
+//         id: results.insertId,
+//         ...nuevoPaciente
+//       });
+//     });
+
+//   } catch (error) {
+//     console.error('Error en el manejo de la solicitud:', error.message);
+//     res.status(500).json({
+//       error: 'Error interno del servidor'
+//     });
+//   } finally {
+//     console.log("------------------------------------------------------------------");
+//     console.log("ENTRA");
+//     console.log("------------------------------------------------------------------");
+//     // closeConnection(connection)
+//   }
+// });
+
 app.post('/pacientes', (req, res) => {
-  try {
-    //  connection =createConnection()
-    const nuevoPaciente = req.body;
-    const sqlQuery = `
-      INSERT INTO MAE_Paciente 
-      SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, 
-          psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, 
-          Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, 
-          Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, 
-          alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, 
-          ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, 
-          DES=?, MM=?, ALM=?, LON=?, CEN=?, FDS=?, Dlk=?, Likes=?, 
-          Tratamientos=?,  Email=? `;
-
-    const values = Object.values(nuevoPaciente);
-
-    pool.query(sqlQuery, values, (error, results) => {
-      if (error) {
-        // console.error('Error al ejecutar la consulta:', error.message);
-        throw error;
-      }
-      res.json({
-        id: results.insertId,
-        ...nuevoPaciente
+    try {
+      //  connection =createConnection()
+      const nuevoPaciente = req.body;
+      const sqlQuery = `
+        INSERT INTO MAE_Paciente SET paciente=?, edad=?, appointment=?, genderType=?, IdTipoDocumento=?, NumeroDocumento=?,  Num_Cel=?,
+        Email=?, FNac=?, Hijos=?, Domicilio=?,
+        Ocupac=?, Gpo=?, EC=?, alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, ANS=?, CIG=?, AntPer=? `;
+  
+      const values = Object.values(nuevoPaciente);
+  
+      pool.query(sqlQuery, values, (error, results) => {
+        if (error) {
+          // console.error('Error al ejecutar la consulta:', error.message);
+          throw error;
+        }
+        res.json({
+          id: results.insertId,
+          ...nuevoPaciente
+        });
       });
-    });
-
-  } catch (error) {
-    console.error('Error en el manejo de la solicitud:', error.message);
-    res.status(500).json({
-      error: 'Error interno del servidor'
-    });
-  } finally {
-    console.log("------------------------------------------------------------------");
-    console.log("ENTRA");
-    console.log("------------------------------------------------------------------");
-    // closeConnection(connection)
-  }
-});
+  
+    } catch (error) {
+      console.error('Error en el manejo de la solicitud:', error.message);
+      res.status(500).json({
+        error: 'Error interno del servidor'
+      });
+    } finally {
+      console.log("------------------------------------------------------------------");
+      console.log("ENTRA");
+      console.log("------------------------------------------------------------------");
+      // closeConnection(connection)
+    }
+  });
+  
 
 // E D I T  P A C I E N T E S
 app.patch('/pacientes/:id', async (req, res) => {
