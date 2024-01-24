@@ -189,7 +189,7 @@ app.post('/eliminarPaciente', (req, res) => {
 
 app.get('/pacientes/:id', (req, res) => {
   const pacienteId = req.params.id;
-  pool.query('SELECT * FROM MAE_Paciente WHERE id = ?', [pacienteId], (error, results, fields) => {
+  pool.query('SELECT * FROM MAE_Paciente WHERE IdPaciente = ?', [pacienteId], (error, results, fields) => {
     if (error) throw error;
     if (results.length > 0) {
       res.json(results[0]);
