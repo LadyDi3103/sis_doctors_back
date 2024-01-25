@@ -201,6 +201,7 @@ app.get('/pacientes/:id', (req, res) => {
 
 // C R E A  P A C I E N T E
 
+
 // app.post('/pacientes', (req, res) => {
 //   try {
 //     //  connection =createConnection()
