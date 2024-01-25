@@ -3,6 +3,11 @@ const mysql = require('mysql');
 const cors = require('cors')
 const app = express();
 const PORT = 3000;
+const bcript = require('bcryptjs');
+const { signToken } = require('./autentication/sign_token');
+const { verifyToken } = require('./utils/verifyToken');
+const { authToken } = require('./middlewares/AuthToken.middleware');
+const saltRounds =10;
 
 app.use(cors());
 app.use(express.json());
@@ -107,7 +112,6 @@ app.post('/citas', (req, res) => {
   if (!fecha || !motivo || !idMedico || !idPaciente) {
     return res.status(400).json({ error: 'faltan datos obligatorios' });
   }
-
   // Insertar la cita en la base de datos
   const insertQuery = 'INSERT INTO citas (id_medico,id_paciente,fecha, motivo) VALUES (?,?,?,?)';
   pool.query(insertQuery, [idMedico,idPaciente,fecha, motivo], (err, result) => {
@@ -174,7 +178,18 @@ app.get('/pacientes', (req, res) => {
   }
   
 });
+// GET TOTAL PACIENTES 
 
+app.get('/totalPacientes', (req, res) => {
+  try{
+    pool.query('SELECT * FROM MAE_Paciente', function (error, results, fields) {
+      if (error) throw error;
+      res.json({result:results.length}); // Enviar los resultados como respuesta JSON
+    });
+  }catch (error){
+    console.log(error, "EL ERROR");
+  }
+});
 
 // E L I M I N A R  paciente por número de DOCUMENTO
 app.post('/eliminarPaciente', (req, res) => {
@@ -304,7 +319,19 @@ app.patch('/pacientes/:id', async (req, res) => {
   }
 });
 
-
+app.post('/login',authToken,async(req,res)=>{
+  console.log(req.body,"body");
+  const hash= bcript.hashSync(req.body.password,saltRounds);
+  const igual = bcript.compareSync(req.body.password,hash)
+  const igual1 = bcript.compareSync(req.body.password1,hash)
+  const token = signToken({data:{name:"name"}})
+  const decode = verifyToken(token)
+  console.log(decode,"DECODE");
+  console.log(token,"TOKEN");
+  console.log(hash,"HASH");
+  console.log(igual,"HASH");
+  console.log(igual1,"HASH");
+})
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
