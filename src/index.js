@@ -106,15 +106,15 @@ app.get('/citas', (req, res) => {
 });
 
 app.post('/citas', (req, res) => {
-  const { fecha, motivo,idMedico,idPaciente } = req.body;
+  const { fecha, tratamiento,id_medico,id_paciente, estado } = req.body;
   console.log(req.body);
-  // Verificar si se proporcionaron fecha y motivo
-  if (!fecha || !motivo || !idMedico || !idPaciente) {
+  // Verificar si se proporcionaron fecha y tratamiento
+  if (!fecha || !tratamiento || !id_medico || !id_paciente  || !estado) {
     return res.status(400).json({ error: 'faltan datos obligatorios' });
   }
   // Insertar la cita en la base de datos
-  const insertQuery = 'INSERT INTO citas (id_medico,id_paciente,fecha, motivo) VALUES (?,?,?,?)';
-  pool.query(insertQuery, [idMedico,idPaciente,fecha, motivo], (err, result) => {
+  const insertQuery = 'INSERT INTO citas (id_medico, id_paciente, fecha, tratamiento, estado) VALUES (?,?,?,?,?)';
+  pool.query(insertQuery, [id_medico, id_paciente, fecha, tratamiento, estado], (err, result) => {
     if (err) {
       console.error('Error al insertar la cita:', err);
       return res.status(500).json({ error: 'Error interno del servidor' });
@@ -144,7 +144,7 @@ app.patch('/medicos/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE Medicos SET nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
+    const sqlQuery = `UPDATE Medicos SET nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id=?`;
 
     const valuesArray = [...Object.values(datosActualizados), doctorId];
 
@@ -301,7 +301,7 @@ app.patch('/pacientes/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
+    const sqlQuery = `UPDATE MAE_Paciente SET paciente=?, IdTipoDocumento =?, NumeroDocumento=?, Num_Cel=?, Email=?, Domicilio=? WHERE IdPaciente=?`;
 
     const valuesArray = [...Object.values(datosActualizados), pacienteId];
 
