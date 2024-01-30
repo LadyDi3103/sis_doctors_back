@@ -1,0 +1,34 @@
+CREATE TABLE roles (
+    role_id INT PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL
+);
+INSERT INTO roles (role_id, role_name) VALUES
+(1, 'admin'),
+(2, 'medico');
+
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role_id INT NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(role_id)
+);
+CREATE TABLE admins (
+    admin_id INT PRIMARY KEY,
+    user_id INT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE TABLE medicos (
+    medico_id INT PRIMARY KEY,
+    user_id INT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE TABLE citas (
+    cita_id INT PRIMARY KEY,
+    medico_id INT,
+    paciente_id INT,
+    fecha_hora DATETIME,
+    FOREIGN KEY (medico_id) REFERENCES medicos(medico_id),
+    FOREIGN KEY (paciente_id) REFERENCES users(id)
+);

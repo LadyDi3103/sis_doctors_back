@@ -1,14 +1,14 @@
 const express = require('express');
 const mysql = require('mysql');
-const cors = require('cors')
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const bcript = require('bcryptjs');
 const { signToken } = require('./autentication/sign_token');
 const { verifyToken } = require('./utils/verifyToken');
 const { authToken } = require('./middlewares/AuthToken.middleware');
-const saltRounds =10;
-
+const saltRounds = 10;
+const RoutesAuthentication = require('./routes/Authentication.routes');
 app.use(cors());
 app.use(express.json());
 
@@ -18,30 +18,25 @@ const dbConfig = {
   host: 'byjvth99hnme7egwpoar-mysql.services.clever-cloud.com', // Cambia a la dirección de tu servidor MySQL
   user: 'ug2iovfdkumobqit', // Cambia a tu nombre de usuario de MySQL
   password: 'KKQ0bqIpbrqbf3wlTILr', // Cambia a tu contraseña de MySQL
-  database: 'byjvth99hnme7egwpoar' // Cambia a tu nombre de base de datos
+  database: 'byjvth99hnme7egwpoar', // Cambia a tu nombre de base de datos
 };
 
-const pool = mysql.createPool(dbConfig)
+const pool = mysql.createPool(dbConfig);
 
-// Rutas de tu aplicación Express
-app.get('/', (req, res) => {
-  // Puedes realizar consultas a la base de datos aquí
-  res.send('¡Hola, mundo!');
-});
+app.use('/auth', RoutesAuthentication);
 
 // T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
   try {
-    pool.query('SELECT * FROM Medicos', (error, results, fields) => {
+    pool.query('SELECT * FROM Medicos ', (error, results, fields) => {
+      // console.log(results);
+      // console.log(fields);
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
     });
   } catch (error) {
-
   } finally {
-
   }
-
 });
 
 // C R E A  D O C T O R  N U E V O
@@ -52,26 +47,30 @@ app.post('/medicos', (req, res) => {
     // const sqlQuery = `INSERT INTO Medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
     const values = Object.values(nuevoDoctor);
 
-    pool.query(sqlQuery, values, (error, results) => {
+    pool.query(sqlQuery, values, (error, results, fields) => {
       if (error) {
         // console.error('Error al ejecutar la consulta:', error.message);
         throw error;
       }
+
       res.json({
         id: results.insertId,
-        ...nuevoDoctor
+        ...nuevoDoctor,
       });
     });
-
   } catch (error) {
     console.error('Error en el manejo de la solicitud:', error.message);
     res.status(500).json({
-      error: 'Error interno del servidor'
+      error: 'Error interno del servidor',
     });
   } finally {
-    console.log("------------------------------------------------------------------");
-    console.log("ENTRA");
-    console.log("------------------------------------------------------------------");
+    console.log(
+      '------------------------------------------------------------------'
+    );
+    console.log('ENTRA');
+    console.log(
+      '------------------------------------------------------------------'
+    );
     // closeConnection(connection)
   }
 });
@@ -80,28 +79,33 @@ app.post('/medicos', (req, res) => {
 app.post('/eliminarMedico', (req, res) => {
   const tipDocumDoctor = req.body.tipDocum;
   const codDocumDoctor = req.body.codDocum;
-  pool.query('DELETE FROM Medicos WHERE tip_docum = ? AND cod_docum = ? ', [tipDocumDoctor, codDocumDoctor], (error, results, fields) => {
-    if (error) throw error;
-    return res.send({message:'Doctor eliminado correctamente',results});
-  });
+  pool.query(
+    'DELETE FROM Medicos WHERE tip_docum = ? AND cod_docum = ? ',
+    [tipDocumDoctor, codDocumDoctor],
+    (error, results, fields) => {
+      if (error) throw error;
+      return res.send({ message: 'Doctor eliminado correctamente', results });
+    }
+  );
 });
 
-// CITAS 
+// CITAS
 
 app.get('/citas', (req, res) => {
   try {
     pool.query('SELECT * FROM citas', (error, results, fields) => {
       if (error) throw error;
-      res.json({result:results}).status(200); // Enviar los resultados como respuesta JSON
+      res.json({ result: results }).status(200); // Enviar los resultados como respuesta JSON
     });
   } catch (error) {
-    res.json({
-        message:'Ocurred error: ',
-        error: error.message
-    }).status(500)
-    console.error('Error',error.message)
+    res
+      .json({
+        message: 'Ocurred error: ',
+        error: error.message,
+      })
+      .status(500);
+    console.error('Error', error.message);
   } finally {
-
   }
 });
 
@@ -120,23 +124,28 @@ app.post('/citas', (req, res) => {
       return res.status(500).json({ error: 'Error interno del servidor' });
     }
 
-    console.log('Cita creada exitosamente');
-    res.status(201).json({ message: 'Cita creada exitosamente' });
-  });
+      console.log('Cita creada exitosamente');
+      res.status(201).json({ message: 'Cita creada exitosamente' });
+    }
+  );
 });
 
-app.get('/citasPaciente/:id_paciente',(req,res)=>{
-  const {id_paciente} = req.params;
+app.get('/citasPaciente/:id_paciente', (req, res) => {
+  const { id_paciente } = req.params;
   console.log(id_paciente);
-  try{
-    pool.query('select * from citas inner join MAE_Paciente ON citas.id_paciente = MAE_Paciente.IdPaciente where citas.id_paciente = ?', [id_paciente], function (error, results, fields) {
-      if (error) throw error;
-      res.json({results});
-    });
-  }catch (error){
-    console.log(error, "EL ERROR");
+  try {
+    pool.query(
+      'select * from citas inner join MAE_Paciente ON citas.id_paciente = MAE_Paciente.IdPaciente where citas.id_paciente = ?',
+      [id_paciente],
+      function (error, results, fields) {
+        if (error) throw error;
+        res.json({ results });
+      }
+    );
+  } catch (error) {
+    console.log(error, 'EL ERROR');
   }
-})
+});
 // E D I T   D A T A   D O C T O R E S
 app.patch('/medicos/:id', async (req, res) => {
   try {
@@ -162,32 +171,29 @@ app.patch('/medicos/:id', async (req, res) => {
   }
 });
 
-
-
 // ************************************************************************************************
 
 // Obtener todos los pacientes
 app.get('/pacientes', (req, res) => {
-  try{
-    pool.query('SELECT * FROM MAE_Paciente', function (error, results, fields) {
+  try {
+    pool.query('SELECT * FROM paciente', function (error, results, fields) {
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
     });
-  }catch (error){
-    console.log(error, "EL ERROR");
+  } catch (error) {
+    console.log(error, 'EL ERROR');
   }
-  
 });
-// GET TOTAL PACIENTES 
+// GET TOTAL PACIENTES
 
 app.get('/totalPacientes', (req, res) => {
-  try{
-    pool.query('SELECT * FROM MAE_Paciente', function (error, results, fields) {
+  try {
+    pool.query('SELECT * FROM pacientes', function (error, results, fields) {
       if (error) throw error;
-      res.json({result:results.length}); // Enviar los resultados como respuesta JSON
+      res.json({ result: results.length }); // Enviar los resultados como respuesta JSON
     });
-  }catch (error){
-    console.log(error, "EL ERROR");
+  } catch (error) {
+    console.log(error, 'EL ERROR');
   }
 });
 
@@ -195,23 +201,30 @@ app.get('/totalPacientes', (req, res) => {
 app.post('/eliminarPaciente', (req, res) => {
   const tipDocumPaciente = req.body.tipDocum;
   const codDocumPaciente = req.body.codDocum;
-  pool.query('DELETE FROM MAE_Paciente WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ', [tipDocumPaciente, codDocumPaciente], (error, results, fields) => {
-    if (error) throw error;
-    return res.send({message:'Paciente eliminado correctamente',results});
-  });
+  pool.query(
+    'DELETE FROM pacientes WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ',
+    [tipDocumPaciente, codDocumPaciente],
+    (error, results, fields) => {
+      if (error) throw error;
+      return res.send({ message: 'Paciente eliminado correctamente', results });
+    }
+  );
 });
-
 
 app.get('/pacientes/:id', (req, res) => {
   const pacienteId = req.params.id;
-  pool.query('SELECT * FROM MAE_Paciente WHERE IdPaciente = ?', [pacienteId], (error, results, fields) => {
-    if (error) throw error;
-    if (results.length > 0) {
-      res.json(results[0]);
-    } else {
-      res.status(404).send('Paciente no encontrado');
+  pool.query(
+    'SELECT * FROM pacientes WHERE id = ?',
+    [pacienteId],
+    (error, results, fields) => {
+      if (error) throw error;
+      if (results.length > 0) {
+        res.json(results[0]);
+      } else {
+        res.status(404).send('Paciente no encontrado');
+      }
     }
-  });
+  );
 });
 
 // C R E A  P A C I E N T E
@@ -259,40 +272,48 @@ app.get('/pacientes/:id', (req, res) => {
 // });
 
 app.post('/pacientes', (req, res) => {
-    try {
-      //  connection =createConnection()
-      const nuevoPaciente = req.body;
-      const sqlQuery = `
-        INSERT INTO MAE_Paciente SET paciente=?, edad=?, appointment=?, genderType=?, IdTipoDocumento=?, NumeroDocumento=?,  Num_Cel=?,
-        Email=?, FNac=?, Hijos=?, Domicilio=?,
-        Ocupac=?, Gpo=?, EC=?, alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, ANS=?, CIG=?, AntPer=? `;
-  
-      const values = Object.values(nuevoPaciente);
-  
-      pool.query(sqlQuery, values, (error, results) => {
-        if (error) {
-          // console.error('Error al ejecutar la consulta:', error.message);
-          throw error;
-        }
-        res.json({
-          id: results.insertId,
-          ...nuevoPaciente
-        });
+  try {
+    //  connection =createConnection()
+    const nuevoPaciente = req.body;
+    const sqlQuery = `
+      INSERT INTO pacientes 
+      SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, 
+          psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, 
+          Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, 
+          Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, 
+          alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, 
+          ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, 
+          DES=?, MM=?, ALM=?, LON=?, CEN=?, FDS=?, Dlk=?, Likes=?, 
+          Tratamientos=?,  Email=? `;
+
+    const values = Object.values(nuevoPaciente);
+
+    pool.query(sqlQuery, values, (error, results) => {
+      if (error) {
+        // console.error('Error al ejecutar la consulta:', error.message);
+        throw error;
+      }
+      res.json({
+        id: results.insertId,
+        ...nuevoPaciente,
       });
-  
-    } catch (error) {
-      console.error('Error en el manejo de la solicitud:', error.message);
-      res.status(500).json({
-        error: 'Error interno del servidor'
-      });
-    } finally {
-      console.log("------------------------------------------------------------------");
-      console.log("ENTRA");
-      console.log("------------------------------------------------------------------");
-      // closeConnection(connection)
-    }
-  });
-  
+    });
+  } catch (error) {
+    console.error('Error en el manejo de la solicitud:', error.message);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+    });
+  } finally {
+    console.log(
+      '------------------------------------------------------------------'
+    );
+    console.log('ENTRA');
+    console.log(
+      '------------------------------------------------------------------'
+    );
+    // closeConnection(connection)
+  }
+});
 
 // E D I T  P A C I E N T E S
 app.patch('/pacientes/:id', async (req, res) => {
@@ -301,7 +322,7 @@ app.patch('/pacientes/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE MAE_Paciente SET paciente=?, IdTipoDocumento =?, NumeroDocumento=?, Num_Cel=?, Email=?, Domicilio=? WHERE IdPaciente=?`;
+    const sqlQuery = `UPDATE pacientes SET id_medico= ?, IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
 
     const valuesArray = [...Object.values(datosActualizados), pacienteId];
 
@@ -319,19 +340,19 @@ app.patch('/pacientes/:id', async (req, res) => {
   }
 });
 
-app.post('/login',authToken,async(req,res)=>{
-  console.log(req.body,"body");
-  const hash= bcript.hashSync(req.body.password,saltRounds);
-  const igual = bcript.compareSync(req.body.password,hash)
-  const igual1 = bcript.compareSync(req.body.password1,hash)
-  const token = signToken({data:{name:"name"}})
-  const decode = verifyToken(token)
-  console.log(decode,"DECODE");
-  console.log(token,"TOKEN");
-  console.log(hash,"HASH");
-  console.log(igual,"HASH");
-  console.log(igual1,"HASH");
-})
+app.post('/login', authToken, async (req, res) => {
+  console.log(req.body, 'body');
+  const hash = bcript.hashSync(req.body.password, saltRounds);
+  const igual = bcript.compareSync(req.body.password, hash);
+  const igual1 = bcript.compareSync(req.body.password1, hash);
+  const token = signToken({ data: { name: 'name' } });
+  const decode = verifyToken(token);
+  console.log(decode, 'DECODE');
+  console.log(token, 'TOKEN');
+  console.log(hash, 'HASH');
+  console.log(igual, 'HASH');
+  console.log(igual1, 'HASH');
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
