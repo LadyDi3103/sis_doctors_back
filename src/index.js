@@ -28,7 +28,7 @@ app.use('/auth', RoutesAuthentication);
 // T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
   try {
-    pool.query('SELECT * FROM Medicos', (error, results, fields) => {
+    pool.query('SELECT * FROM Medicos ', (error, results, fields) => {
       // console.log(results);
       // console.log(fields);
       if (error) throw error;
