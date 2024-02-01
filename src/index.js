@@ -28,7 +28,7 @@ app.use('/auth', RoutesAuthentication);
 // T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
   try {
-    pool.query('SELECT * FROM Medicos ', (error, results, fields) => {
+    pool.query('SELECT * FROM medicos ', (error, results, fields) => {
       // console.log(results);
       // console.log(fields);
       if (error) throw error;
@@ -43,7 +43,7 @@ app.get('/medicos', (req, res) => {
 app.post('/medicos', (req, res) => {
   try {
     const nuevoDoctor = req.body;
-    const sqlQuery = `INSERT INTO Medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
+    const sqlQuery = `INSERT INTO medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=?`;
 
     const values = Object.values(nuevoDoctor);
 
@@ -80,7 +80,7 @@ app.post('/eliminarMedico', (req, res) => {
   const tipDocumDoctor = req.body.tipDocum;
   const codDocumDoctor = req.body.codDocum;
   pool.query(
-    'DELETE FROM Medicos WHERE tip_docum = ? AND cod_docum = ? ',
+    'DELETE FROM medicos WHERE tip_docum = ? AND cod_docum = ? ',
     [tipDocumDoctor, codDocumDoctor],
     (error, results, fields) => {
       if (error) throw error;
@@ -91,7 +91,7 @@ app.post('/eliminarMedico', (req, res) => {
 
 // CITAS
 
-app.get('/citas', (req, res) => {
+app.get('/citas', authToken, (req, res) => {
   try {
     pool.query('SELECT * FROM citas', (error, results, fields) => {
       if (error) throw error;
@@ -108,8 +108,17 @@ app.get('/citas', (req, res) => {
   } finally {
   }
 });
-
-app.post('/citas', (req, res) => {
+app.get('/verifyToken', (req, res) => {
+  try {
+    const token = verifyToken(req.params.token);
+    if (token) {
+      res.json({ message: 'Token is valid' });
+    }
+  } catch (error) {
+    res.json({ message: 'Token is invalid' }).status(401);
+  }
+});
+app.post('/citas', authToken, (req, res) => {
   const { fecha, motivo, idMedico, idPaciente } = req.body;
   console.log(req.body);
   // Verificar si se proporcionaron fecha y motivo
@@ -139,7 +148,7 @@ app.get('/citasPaciente/:id_paciente', (req, res) => {
   console.log(id_paciente);
   try {
     pool.query(
-      'select * from citas inner join MAE_Paciente ON citas.id_paciente = MAE_Paciente.IdPaciente where citas.id_paciente = ?',
+      'select * from citas inner join pacientes ON citas.id_paciente = pacientes.id where citas.paciente_id = ?',
       [id_paciente],
       function (error, results, fields) {
         if (error) throw error;
@@ -157,7 +166,7 @@ app.patch('/medicos/:id', async (req, res) => {
 
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE Medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
+    const sqlQuery = `UPDATE medicos SET id_medico=?, nom_medico=?, ape_medico=?, tip_docum=?, cod_docum=?, celular=?, email=?, direccion=? WHERE id_medico=?`;
 
     const valuesArray = [...Object.values(datosActualizados), doctorId];
 
@@ -180,7 +189,7 @@ app.patch('/medicos/:id', async (req, res) => {
 // Obtener todos los pacientes
 app.get('/pacientes', (req, res) => {
   try {
-    pool.query('SELECT * FROM paciente', function (error, results, fields) {
+    pool.query('SELECT * FROM pacientes', function (error, results, fields) {
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
     });
