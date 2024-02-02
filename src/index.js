@@ -1,29 +1,20 @@
 const express = require('express');
-const mysql = require('mysql');
 const cors = require('cors');
 const app = express();
 const PORT = 3000;
-const bcript = require('bcryptjs');
-const { signToken } = require('./autentication/sign_token');
-const { verifyToken } = require('./utils/verifyToken');
-const { authToken } = require('./middlewares/AuthToken.middleware');
-const saltRounds = 10;
+
 const RoutesAuthentication = require('./routes/Authentication.routes');
+const RoutesCitas = require('./routes/Appointments.routes');
+const RoutesMedicos = require('./routes/Doctors.routes');
+const RoutesPacientes = require('./routes/Patients.routes');
+const { authToken } = require('./middlewares/AuthToken.middleware');
 app.use(cors());
 app.use(express.json());
 
-// Configuración de la conexión a MySQL
-const dbConfig = {
-  connectionLimit: 10,
-  host: 'byjvth99hnme7egwpoar-mysql.services.clever-cloud.com', // Cambia a la dirección de tu servidor MySQL
-  user: 'ug2iovfdkumobqit', // Cambia a tu nombre de usuario de MySQL
-  password: 'KKQ0bqIpbrqbf3wlTILr', // Cambia a tu contraseña de MySQL
-  database: 'byjvth99hnme7egwpoar', // Cambia a tu nombre de base de datos
-};
-
-const pool = mysql.createPool(dbConfig);
-
 app.use('/auth', RoutesAuthentication);
+app.use('/citas', authToken, RoutesCitas);
+app.use('/medicos', authToken, RoutesMedicos);
+app.use('/pacientes', authToken, RoutesPacientes);
 
 // T O D O S  L O S  M E D I C O S
 app.get('/medicos', (req, res) => {
