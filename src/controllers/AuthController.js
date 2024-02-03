@@ -1,102 +1,102 @@
-import pool from "../database/db";
-const bcrypt = require("bcryptjs");
+const pool = require('../database/db');
+const bcrypt = require('bcryptjs');
+const createToken = require('../utils/createToken');
 
-/**
- * @param {import('express').Request} req - Objeto de solicitud de Express.
- * @param {import('express').Response} res - Objeto de respuesta de Express.
- */
-export const AuthController = () => {
-  const Login = async (req, res) => {
-    const { password, email } = req.body;
-
-    try {
-      // Verificar en la tabla Medicos
-      const medicoResults = await queryAndCheckPassword(
-        "Medicos",
-        email,
-        password
-      );
-      if (medicoResults.length > 0) {
-        // El email y contraseña coinciden en la tabla Medicos
-        return res.send({
-          message: "Login exitoso como Medico",
-          success: true,
-        });
-      }
-
-      // Verificar en la tabla Admins
-      const adminResults = await queryAndCheckPassword(
-        "Admins",
-        email,
-        password
-      );
-      if (adminResults.length > 0) {
-        // El email y contraseña coinciden en la tabla Admins
-        return res.send({ message: "Login exitoso como Admin", success: true });
-      }
-
-      // Ningún usuario encontrado o contraseña incorrecta
-      res.send({
-        message: "El email o la contraseña son incorrectos",
-        success: false,
-      });
-    } catch (error) {
-      console.error("Error en el login:", error);
-      res.send({ message: "Error en el servidor", success: false });
-    }
-  };
-
-  const queryAndCheckPassword = async (table, email, password) => {
-    const selectQuery = (table, email) =>
-      `SELECT * FROM ${pool.escapeId(table)} WHERE email = ${pool.escape(
-        email
-      )}`;
-
-    // Realizar la consulta a la base de datos
-    const results = await pool.query(selectQuery(table, email));
-
-    // Verificar la contraseña utilizando bcrypt
-    if (results.length > 0) {
-      const match = await bcrypt.compare(password, results[0].password || "");
-
-      if (match) {
-        return results; // La contraseña coincide
-      }
-    }
-
-    return []; // Ningún usuario encontrado o la contraseña no coincide
-  };
-
-  const Register = (req, res) => {
-    const saltRounds = 10;
+async function Register(req, res) {
+  try {
     const { name, email, password, rol } = req.body;
-    const hash = bcrypt.hashSync(password, saltRounds);
-    const values = { name, email, password: hash, rol };
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hashSync(password, salt);
+    const sqlQueryRoles = `SELECT role_id FROM roles WHERE role_name=${pool.escape(
+      rol
+    )}`;
+    const [result] = await pool.query(sqlQueryRoles);
+    const roleId = result[0].role_id;
+    const sqlQueryCreateUser = `INSERT INTO users SET ?`;
+    const valuesUser = {
+      name,
+      email,
+      password: hashedPassword,
+      role_id: roleId,
+    };
+    const [resUser] = await pool.query(sqlQueryCreateUser, valuesUser);
+    const user_id = resUser.insertId;
+    if (rol === 'admin') {
+      const valuesAdmin = { user_id };
+      await pool.query('INSERT INTO admins SET ?', valuesAdmin);
+    }
+    if (rol === 'medico') {
+      const valuesMedico = { user_id };
+      await pool.query('INSERT INTO medicos SET ?', valuesMedico);
+    }
+    console.log(resUser);
+    res.status(200).json({
+      message: 'User registered successfully',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+}
 
-    const sql = (table) => `INSERT INTO ${pool.escapeId(table)} SET ?`;
-    if ((!name || !email || !password, !rol)) {
-      res.send({ message: "Data incorrect", success: false });
+async function Login(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(401).json({
+        message: 'Email and password are required',
+      });
       return;
     }
-    if (rol === "doctor") {
-      pool.query(sql("Medicos"), values, (err, result) => {
-        if (err) throw err;
-        res.send({ message: "Data correct", success: true });
+    const [resUser] = await pool.query(`SELECT * FROM users WHERE email=?`, [
+      email,
+    ]);
+    console.log(resUser, 'RES IUSER');
+    if (resUser.length === 0) {
+      res.status(401).json({
+        message: 'User not found',
       });
-    } else if (rol === "admin") {
-      pool.query(sql("Admins"), values, (err, result) => {
-        if (err) throw err;
-        res.send({ message: "Data correct", success: true });
-      });
+      return;
     }
-  };
-
-  return {
-    Login,
-    Register,
-  };
-};
+    const user = resUser[0];
+    const [resRol] = await pool.query(
+      `SELECT role_name FROM roles WHERE role_id=?`,
+      [user.role_id]
+    );
+    const passwordIsCorrect = await bcrypt.compare(password, user.password);
+    console.log(passwordIsCorrect, 'PASSWORD');
+    if (!passwordIsCorrect) {
+      res.status(401).json({
+        message: 'Invalid password',
+      });
+      return;
+    }
+    const token = await createToken({
+      id: user.id,
+      email: user.email,
+      role: resRol[0],
+    });
+    console.log(resRol[0], 'ROL');
+    res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        rol: resRol[0].role_name,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+}
 
 module.exports = {
-  AuthController,
+  Register,
+  Login,
 };
