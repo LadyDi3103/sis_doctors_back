@@ -13,7 +13,11 @@ app.use(express.json());
 
 app.use('/auth', RoutesAuthentication);
 app.use('/citas', authToken, RoutesCitas);
-app.use('/medicos', authToken, RoutesMedicos);
+app.use(
+  '/medicos',
+  // authToken,
+  RoutesMedicos
+);
 app.use('/pacientes', authToken, RoutesPacientes);
 
 app.listen(PORT, () => {

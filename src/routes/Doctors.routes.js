@@ -8,12 +8,12 @@ const {
 } = require('../controllers/DoctorsController');
 const router = express.Router();
 
-router.post('/eliminarMedico', deleteMedico);
+router.post('/deleteMedico', deleteMedico);
 
-router.patch('/medicos/:id', editMedico);
+router.patch('/editMedico/:id', editMedico);
 
-router.get('/medicos', getMedicos);
+router.get('/getMedicos', getMedicos);
 // C R E A  D O C T O R  N U E V O
-router.post('/medicos', createMedico);
+router.post('/createMedico', createMedico);
 
 module.exports = router;

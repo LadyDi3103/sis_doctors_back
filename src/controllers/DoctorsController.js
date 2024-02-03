@@ -1,4 +1,4 @@
-const { pool } = require('../database/db');
+// const { pool } = require('../database/db');
 
 function deleteMedico(req, res) {
   const tipDocumDoctor = req.body.tipDocum;
@@ -44,6 +44,8 @@ function getMedicos(req, res) {
       res.json(results); // Enviar los resultados como respuesta JSON
     });
   } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener los medicos');
   } finally {
   }
 }
