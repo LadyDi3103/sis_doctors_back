@@ -1,18 +1,5 @@
-const pool = require('../database/db');
+const { pool } = require('../database/db');
 const hashPassword = require('../utils/hashPassword');
-
-async function isAdminActive(adminId) {
-  try {
-    const [adminResults] = await pool.query(
-      'SELECT active FROM admins WHERE id = ?',
-      [adminId]
-    );
-    return adminResults.length > 0 && adminResults[0].active === 1;
-  } catch (error) {
-    console.error('Error al verificar si el administrador está activo:', error);
-    return false;
-  }
-}
 
 async function getAdmins(req, res) {
   try {
@@ -56,6 +43,7 @@ async function getAdmin(req, res) {
     });
   }
 }
+
 async function deleteAdmin(req, res) {
   const adminId = req.params.id;
   try {
@@ -71,14 +59,6 @@ async function deleteAdmin(req, res) {
     }
 
     const userId = adminResults[0].user_id;
-
-    const isAdminActive = await isAdminActive(adminId);
-
-    if (!isAdminActive) {
-      return res
-        .status(401)
-        .json({ status: 'error', message: 'El administrador no está activo.' });
-    }
 
     await pool.query('UPDATE users SET active = 0 WHERE id = ?', [userId]);
 
@@ -100,29 +80,6 @@ async function updateAdmin(req, res) {
   const newData = req.body;
 
   try {
-    const [adminResults] = await pool.query(
-      'SELECT user_id FROM admins WHERE id = ?',
-      [adminId]
-    );
-
-    if (adminResults.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Administrador no encontrado.',
-      });
-    }
-
-    // Verificar si el administrador está activo
-    const isAdminActive = await isAdminActive(adminId);
-
-    if (!isAdminActive) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'El administrador no está activo.',
-      });
-    }
-
-    // Obtener el role_id correcto si está presente en los datos actualizados
     if (newData.role) {
       const [roleRows] = await pool.query(
         'SELECT role_id FROM roles WHERE role_name = ?',
@@ -134,10 +91,9 @@ async function updateAdmin(req, res) {
           .json({ status: 'error', message: 'Rol no encontrado.' });
       }
       newData.role_id = roleRows[0].role_id;
-      delete newData.role; // Eliminar el campo role ya que no será actualizado en la tabla admins
+      delete newData.role;
     }
 
-    // Generar hash de la nueva contraseña si está presente
     if (newData.password) {
       newData.password = hashPassword(newData.password);
     }

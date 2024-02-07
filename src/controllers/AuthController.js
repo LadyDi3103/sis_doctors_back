@@ -1,6 +1,6 @@
 const pool = require('../database/db');
 const bcrypt = require('bcryptjs');
-const createToken = require('../utils/createToken');
+const generateToken = require('../utils/generateToken');
 
 // async function Register(req, res) {
 //   try {
@@ -42,64 +42,25 @@ const createToken = require('../utils/createToken');
 // }
 
 async function Login(req, res) {
+  const { username, password } = req.body;
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      res.status(401).json({
-        message: 'Email and password are required',
-      });
-      return;
-    }
-    const [resUser] = await pool.query(`SELECT * FROM users WHERE email=?`, [
-      email,
+    const [rows] = await pool.execute('SELECT * FROM users WHERE name = ?', [
+      username,
     ]);
-    console.log(resUser, 'RES USER');
-    if (resUser.length === 0) {
-      res.status(401).json({
-        message: 'User not found',
-      });
-      return;
+    if (
+      rows.length === 0 ||
+      !(await bcrypt.compare(password, rows[0].password)) ||
+      rows[0].active === 0
+    ) {
+      return res
+        .status(401)
+        .json({ message: 'Nombre de usuario o contraseña incorrectos.' });
     }
-    const user = resUser[0];
-    // Verificar si el usuario está activo
-    if (user.active === 0) {
-      res.status(401).json({
-        message: 'User is not active',
-      });
-      return;
-    }
-    const [resRol] = await pool.query(
-      `SELECT role_name FROM roles WHERE role_id=?`,
-      [user.role_id]
-    );
-    const passwordIsCorrect = await bcrypt.compare(password, user.password);
-    console.log(passwordIsCorrect, 'PASSWORD');
-    if (!passwordIsCorrect) {
-      res.status(401).json({
-        message: 'Invalid password',
-      });
-      return;
-    }
-    const token = await createToken({
-      id: user.id,
-      email: user.email,
-      role: resRol[0],
-    });
-    console.log(resRol[0], 'ROL');
-    res.status(200).json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: resRol[0].role_name,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: 'Internal Server Error',
-    });
+    const token = generateToken(rows[0]);
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error en el servidor.' });
   }
 }
 

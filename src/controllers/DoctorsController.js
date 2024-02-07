@@ -1,19 +1,19 @@
 const { pool } = require('../database/db');
-const bcrypt = require('bcryptjs');
 const hashPassword = require('../utils/hashPassword');
-async function isMedicoActive(userId) {
-  try {
-    const [userResults] = await pool.query(
-      'SELECT active FROM medicos WHERE id = ?',
-      [userId]
-    );
-    return userResults.length > 0 && userResults[0].active === 1;
-  } catch (error) {
-    console.error('Error al verificar si el usuario está activo:', error);
-    return false;
-  }
-}
-//!IMPORTANT CREAR GETMEDICOS
+
+// async function isMedicoActive(userId) {
+//   try {
+//     const [userResults] = await pool.query(
+//       'SELECT active FROM medicos WHERE id = ?',
+//       [userId]
+//     );
+//     return userResults.length > 0 && userResults[0].active === 1;
+//   } catch (error) {
+//     console.error('Error al verificar si el usuario está activo:', error);
+//     return false;
+//   }
+// }
+
 async function getMedicos(req, res) {
   try {
     const [activeMedicos] = await pool.query(
@@ -37,33 +37,8 @@ async function deleteMedico(req, res) {
   const id = req.params.id;
 
   try {
-    // Consultar si existe un médico con el ID proporcionado
-    const [medicoResults] = await pool.query(
-      'SELECT * FROM medicos WHERE id = ?',
-      [id]
-    );
-
-    if (medicoResults.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: 'Médico no encontrado.' });
-    }
-
-    // Obtener el ID del usuario asociado al médico
-    const userId = medicoResults[0].user_id;
-
-    // Verificar si el usuario está activo
-    const userIsActive = await isMedicoActive(userId);
-
-    if (!userIsActive) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'El usuario asociado al médico no está activo.',
-      });
-    }
-
     // Cambiar el estado del médico a inactivo (active = 0)
-    await pool.query('UPDATE users SET active = 0 WHERE id = ?', [id]);
+    await pool.query('UPDATE medicos SET active = 0 WHERE id = ?', [id]);
 
     res
       .status(200)
@@ -82,32 +57,6 @@ async function editMedico(req, res) {
   const datosActualizados = req.body;
 
   try {
-    // Consultar si el médico existe y está activo
-    const [medicoResults] = await pool.query(
-      'SELECT * FROM medicos WHERE id = ? AND active = 1',
-      [doctorId]
-    );
-
-    if (medicoResults.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Médico no encontrado o no activo.',
-      });
-    }
-
-    // Obtener el ID de usuario asociado al médico
-    const userId = medicoResults[0].user_id;
-
-    // Verificar si el usuario está activo
-    const userIsActive = await isMedicoActive(userId);
-
-    if (!userIsActive) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'El usuario asociado al médico no está activo.',
-      });
-    }
-
     // Obtener el role_id correcto si está presente en los datos actualizados
     if (datosActualizados.role) {
       const [roleRows] = await pool.query(
@@ -154,26 +103,14 @@ async function getMedico(req, res) {
 
   try {
     const [medicoResults] = await pool.query(
-      'SELECT * FROM medicos WHERE id = ?',
+      'SELECT * FROM medicos WHERE id = ? AND active = 1',
       [id]
     );
 
     if (medicoResults.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: 'Médico no encontrado.' });
-    }
-
-    // Obtener el ID del usuario asociado al médico
-    const userId = medicoResults[0].user_id;
-
-    // Verificar si el usuario está activo
-    const userIsActive = await isMedicoActive(userId);
-
-    if (!userIsActive) {
-      return res.status(401).json({
+      return res.status(404).json({
         status: 'error',
-        message: 'El usuario asociado al médico no está activo.',
+        message: 'Médico no encontrado o no activo.',
       });
     }
 
