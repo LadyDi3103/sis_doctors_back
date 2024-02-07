@@ -8,7 +8,7 @@ const {
 } = require('../controllers/DoctorsController');
 const router = express.Router();
 
-router.post('/deleteMedico', deleteMedico);
+router.delete('/deleteMedico/:id', deleteMedico);
 
 router.patch('/editMedico/:id', editMedico);
 

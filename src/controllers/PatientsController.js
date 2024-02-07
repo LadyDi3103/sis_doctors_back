@@ -2,7 +2,7 @@ const { pool } = require('../database/db');
 
 function getPacientes(req, res) {
   try {
-    pool.query('SELECT * FROM pacientes', function (error, results, fields) {
+    pool.query('select * from pacientes', function (error, results, fields) {
       if (error) throw error;
       res.json(results); // Enviar los resultados como respuesta JSON
     });
@@ -12,11 +12,10 @@ function getPacientes(req, res) {
 }
 
 function deletePaciente(req, res) {
-  const tipDocumPaciente = req.body.tipDocum;
-  const codDocumPaciente = req.body.codDocum;
+  const id = req.params.id;
   pool.query(
-    'DELETE FROM pacientes WHERE IdTipoDocumento = ? AND NumeroDocumento = ? ',
-    [tipDocumPaciente, codDocumPaciente],
+    'DELETE FROM pacientes WHERE id=?',
+    [id],
     (error, results, fields) => {
       if (error) throw error;
       return res.send({ message: 'Paciente eliminado correctamente', results });
@@ -42,17 +41,12 @@ function createPaciente(req, res) {
   try {
     //  connection =createConnection()
     const nuevoPaciente = req.body;
+    console.log(nuevoPaciente, 'NUEVO ');
     const sqlQuery = `
-      INSERT INTO pacientes 
-      SET paciente=?, appointment=?, genderType=?, symptoms=?, signs=?, 
-          psique=?, TpAnt=?, Fcos=?, OS=?, diag=?, NumeroDocumento=?, 
-          Domicilio=?, Distrito=?, Provincia=?, Departamento=?, Num_Telf=?, 
-          Num_Cel=?, FNac=?, Hijos=?, Ocupac=?, Gpo=?, EC=?, Consulta=?, 
-          alergias=?, MEN=?, SÑO=?, Cirugias=?, CPO=?, NOC=?, AntFam=?, 
-          ANS=?, CIG=?, AntPer=?, EST=?, PesoKG=?, BMI=?, PT=?, KG=?, 
-          DES=?, MM=?, ALM=?, LON=?, CEN=?, FDS=?, Dlk=?, Likes=?, 
-          Tratamientos=?,  Email=? `;
-
+  INSERT INTO pacientes 
+    (edad, appointment, genderType, IdTipoDocumento, num_Documento, num_Cel, FNac, Hijos, Domicilio, Ocupac, Gpo, EC, alergias, MEN, SÑO, Cirugias, CPO, NOC, AntFam, ANS, CIG, AntPer) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
     const values = Object.values(nuevoPaciente);
 
     pool.query(sqlQuery, values, (error, results) => {
@@ -84,26 +78,45 @@ function createPaciente(req, res) {
 function editPaciente(req, res) {
   try {
     const pacienteId = req.params.id;
-
     const datosActualizados = req.body;
 
-    const sqlQuery = `UPDATE pacientes SET id_medico= ?, IdPaciente=?, paciente=?, NumeroDocumento=?, Num_Cel=?, Domicilio=?, Email=? WHERE IdPaciente=?`;
+    const sqlQuery = 'UPDATE pacientes SET ? WHERE id=?';
 
-    const valuesArray = [...Object.values(datosActualizados), pacienteId];
+    pool.query(
+      sqlQuery,
+      [datosActualizados, pacienteId],
+      (error, results, fields) => {
+        if (error) {
+          console.error('Error al actualizar el paciente:', error);
+          return res.status(500).json({
+            status: 'error',
+            message: 'Error interno del servidor al actualizar el paciente.',
+          });
+        }
 
-    pool.query(sqlQuery, valuesArray, (error, results, fields) => {
-      if (error) {
-        console.error(error);
-        return res.status(500).send('Error al actualizar el paciente');
+        if (results.affectedRows === 0) {
+          return res.status(404).json({
+            status: 'error',
+            message: 'Paciente no encontrado para actualizar.',
+          });
+        }
+
+        res.status(200).json({
+          status: 'success',
+          message: 'Paciente actualizado correctamente.',
+          updatedPatient: { id: pacienteId, ...datosActualizados },
+        });
       }
-
-      res.json(results);
-    });
+    );
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error al actualizar el paciente');
+    console.error('Error al actualizar el paciente:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error interno del servidor al actualizar el paciente.',
+    });
   }
 }
+
 module.exports = {
   getPacientes,
   deletePaciente,

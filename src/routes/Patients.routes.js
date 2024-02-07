@@ -9,18 +9,18 @@ const {
 } = require('../controllers/PatientsController');
 const router = express.Router();
 // Obtener todos los pacientes
-router.get('/pacientes', getPacientes);
+router.get('/getPacientes', getPacientes);
 
 // E L I M I N A R  paciente por número de DOCUMENTO
-router.post('/eliminarPaciente', deletePaciente);
+router.delete('/eliminarPaciente/:id', deletePaciente);
 
-router.get('/pacientes/:id', getPaciente);
+router.get('/getPaciente/:id', getPaciente);
 
 // C R E A  P A C I E N T E
 
-router.post('/pacientes', createPaciente);
+router.post('/createPaciente', createPaciente);
 
 // E D I T  P A C I E N T E S
-router.patch('/pacientes/:id', editPaciente);
+router.put('/editPaciente/:id', editPaciente);
 
 module.exports = router;
