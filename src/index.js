@@ -30,13 +30,20 @@ passport.use(
     },
     async function (jwtPayload, done) {
       try {
-        const [rows] = await pool.execute('SELECT * FROM users WHERE id = ?', [
-          jwtPayload.id,
-        ]);
+        const [rows] = await pool.execute(
+          'SELECT name,id,email,role_id FROM users WHERE id = ?',
+          [jwtPayload.id]
+        );
         if (rows.length === 0) {
           return done(null, false);
         }
         const user = rows[0];
+        const [role] = await pool.execute(
+          'SELECT role_name FROM roles WHERE role_id = ?',
+          [user.role_id]
+        );
+        console.log(role[0]);
+        user.role_name = role[0].role_name;
         return done(null, user);
       } catch (err) {
         return done(err, false);
@@ -51,6 +58,7 @@ app.get('/verifyToken', requireAuth, (req, res) => {
   res.json({
     status: 'success',
     message: 'Token valido',
+    user: req.user,
   });
 });
 app.use('/auth', RoutesAuth);

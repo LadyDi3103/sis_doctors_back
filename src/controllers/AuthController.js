@@ -43,30 +43,81 @@ const generateToken = require('../utils/generateToken');
 
 async function Login(req, res) {
   const { email, password } = req.body;
+
   try {
+    // Validación de datos de entrada
     if (!email || !password) {
-      return res.json({
+      return res.status(400).json({
         status: 'error',
         message: 'Faltan datos',
       });
     }
-    const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [
-      email,
-    ]);
-    if (
-      rows.length === 0 ||
-      !(await bcrypt.compare(password, rows[0].password)) ||
-      rows[0].active === 0
-    ) {
+
+    // Consulta SQL para obtener la información del usuario y su estado activo
+    const [rows] = await pool.execute(
+      'SELECT users.*, roles.role_name FROM users INNER JOIN roles ON roles.role_id = users.role_id WHERE users.email = ?',
+      [email]
+    );
+    // Si no se encuentra ningún usuario con el correo electrónico dado
+    if (rows.length === 0) {
       return res
         .status(401)
         .json({ message: 'Nombre de usuario o contraseña incorrectos.' });
     }
-    const token = generateToken(rows[0]);
-    const { id, password: _, ...userWithoutIdAndPassword } = rows[0];
+
+    const user = rows[0];
+    if (user.role_id === 1) {
+      const [adminsRows] = await pool.execute(
+        'SELECT * FROM admins WHERE user_id = ?',
+        [user.id]
+      );
+      user.active = adminsRows[0].active;
+    } else if (user.role_id === 2) {
+      const [medicoRows] = await pool.execute(
+        'SELECT * FROM medicos WHERE user_id =?',
+        [user.id]
+      );
+      user.active = medicoRows[0].active;
+    }
+    console.log(user, 'USER');
+    if (!user.active) {
+      return res
+        .status(401)
+        .json({ message: 'Nombre de usuario o contraseña incorrectos.' });
+    }
+    // Comparación de contraseñas
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res
+        .status(401)
+        .json({ message: 'Nombre de usuario o contraseña incorrectos.' });
+    }
+
+    // Generación de token
+    const token = generateToken(user);
+
+    // Obtener información específica del rol
+    // let role_specific_data = {};
+    if (user.role_name === 'admin') {
+      const [adminRows] = await pool.execute(
+        'SELECT active FROM admins WHERE user_id = ?',
+        [user.id]
+      );
+      user.active = adminRows[0].active;
+    } else if (user.role_name === 'medico') {
+      const [medicoRows] = await pool.execute(
+        'SELECT celular, active FROM medicos WHERE user_id = ?',
+        [user.id]
+      );
+      user.active = medicoRows[0].active;
+    }
+
+    // Excluir campos sensibles antes de enviar la respuesta
+    const { id, password: _, ...userWithoutIdAndPassword } = user;
+
     res.json({ token, user: userWithoutIdAndPassword });
   } catch (err) {
-    console.error(err);
+    console.error('Error en la autenticación:', err);
     res.status(500).json({ message: 'Error en el servidor.' });
   }
 }

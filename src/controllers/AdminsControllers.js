@@ -4,10 +4,10 @@ const hashPassword = require('../utils/hashPassword');
 async function getAdmins(req, res) {
   try {
     const [activeAdmins] = await pool.query(
-      'SELECT * FROM admins WHERE active = 1'
+      'SELECT admins.*, users.id, users.name, users.email FROM admins INNER JOIN users ON users.id = admins.user_id WHERE admins.active = 1'
     );
     const [inactiveAdmins] = await pool.query(
-      'SELECT * FROM admins WHERE active = 0'
+      'SELECT admins.*, users.id, users.name, users.email FROM admins INNER JOIN users ON users.id = admins.user_id WHERE admins.active = 0'
     );
 
     res.status(200).json({ status: 'success', activeAdmins, inactiveAdmins });
@@ -24,7 +24,7 @@ async function getAdmin(req, res) {
   const adminId = req.params.id;
   try {
     const [adminResults] = await pool.query(
-      'SELECT * FROM admins WHERE id = ?',
+      'SELECT admins.*, users.id, users.name, users.email FROM admins INNER JOIN users ON users.id = admins.user_id WHERE users.id= ?',
       [adminId]
     );
 
@@ -60,7 +60,7 @@ async function deleteAdmin(req, res) {
 
     const userId = adminResults[0].user_id;
 
-    await pool.query('UPDATE users SET active = 0 WHERE id = ?', [userId]);
+    await pool.query('UPDATE admins SET active = 0 WHERE id = ?', [userId]);
 
     res.status(200).json({
       status: 'success',
