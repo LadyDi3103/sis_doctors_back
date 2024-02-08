@@ -17,10 +17,10 @@ const hashPassword = require('../utils/hashPassword');
 async function getMedicos(req, res) {
   try {
     const [activeMedicos] = await pool.query(
-      'SELECT * FROM medicos WHERE active = 1'
+      'SELECT medicos.*, users.id, users.name, users.email, medicos.active FROM medicos INNER JOIN users ON users.id = medicos.user_id WHERE medicos.active = 1'
     );
     const [inactiveMedicos] = await pool.query(
-      'SELECT * FROM medicos WHERE active = 0'
+      'SELECT medicos.*, users.id, users.name, users.email, medicos.active FROM medicos INNER JOIN users ON users.id = medicos.user_id WHERE medicos.active =0'
     );
 
     res.status(200).json({ status: 'success', activeMedicos, inactiveMedicos });

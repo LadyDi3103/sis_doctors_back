@@ -47,7 +47,12 @@ passport.use(
 
 // Middleware de Passport para verificar la autenticación con JWT
 const requireAuth = passport.authenticate('jwt', { session: false });
-
+app.get('/verifyToken', requireAuth, (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Token valido',
+  });
+});
 app.use('/auth', RoutesAuth);
 
 // Ejemplo de rutas protegidas que requieren autenticación y privilegios de administrador

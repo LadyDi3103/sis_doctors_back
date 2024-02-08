@@ -1,13 +1,12 @@
-const { pool } = require('../database/db');
+const pool = require('../database/db');
 
-function getPacientes(req, res) {
+async function getPacientes(req, res) {
   try {
-    pool.query('select * from pacientes', function (error, results, fields) {
-      if (error) throw error;
-      res.json(results); // Enviar los resultados como respuesta JSON
-    });
+    const [rows, fields] = await pool.query('SELECT * FROM pacientes');
+    res.json(rows); // Enviar los resultados como respuesta JSON
   } catch (error) {
-    console.log(error, 'EL ERROR');
+    console.error('Error al obtener pacientes:', error);
+    res.status(500).json({ error: 'Error al obtener pacientes' });
   }
 }
 
