@@ -42,10 +42,10 @@ const generateToken = require('../utils/generateToken');
 // }
 
 async function Login(req, res) {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   try {
-    const [rows] = await pool.execute('SELECT * FROM users WHERE name = ?', [
-      username,
+    const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [
+      email,
     ]);
     if (
       rows.length === 0 ||
@@ -57,7 +57,8 @@ async function Login(req, res) {
         .json({ message: 'Nombre de usuario o contraseña incorrectos.' });
     }
     const token = generateToken(rows[0]);
-    res.json({ token });
+    const { id, password: _, ...userWithoutIdAndPassword } = rows[0];
+    res.json({ token, user: userWithoutIdAndPassword });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error en el servidor.' });

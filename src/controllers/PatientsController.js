@@ -9,6 +9,9 @@ function getPacientes(req, res) {
   } catch (error) {
     console.log(error, 'EL ERROR');
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 function deletePaciente(req, res) {
@@ -65,6 +68,7 @@ function createPaciente(req, res) {
       error: 'Error interno del servidor',
     });
   } finally {
+      // pool.end();
     console.log(
       '------------------------------------------------------------------'
     );
@@ -115,6 +119,9 @@ function editPaciente(req, res) {
       message: 'Error interno del servidor al actualizar el paciente.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 module.exports = {
