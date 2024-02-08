@@ -8,6 +8,9 @@ async function getPacientes(req, res) {
     console.error('Error al obtener pacientes:', error);
     res.status(500).json({ error: 'Error al obtener pacientes' });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 function deletePaciente(req, res) {
@@ -64,6 +67,7 @@ function createPaciente(req, res) {
       error: 'Error interno del servidor',
     });
   } finally {
+      // pool.end();
     console.log(
       '------------------------------------------------------------------'
     );
@@ -114,6 +118,9 @@ function editPaciente(req, res) {
       message: 'Error interno del servidor al actualizar el paciente.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 module.exports = {

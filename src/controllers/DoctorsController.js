@@ -1,4 +1,4 @@
-const { pool } = require('../database/db');
+const pool = require('../database/db');
 const hashPassword = require('../utils/hashPassword');
 
 // async function isMedicoActive(userId) {
@@ -20,7 +20,7 @@ async function getMedicos(req, res) {
       'SELECT medicos.*, users.id, users.name, users.email, medicos.active FROM medicos INNER JOIN users ON users.id = medicos.user_id WHERE medicos.active = 1'
     );
     const [inactiveMedicos] = await pool.query(
-      'SELECT medicos.*, users.id, users.name, users.email, medicos.active FROM medicos INNER JOIN users ON users.id = medicos.user_id WHERE medicos.active =0'
+      'SELECT medicos.*, users.id, users.name, users.email, medicos.active FROM medicos INNER JOIN users ON users.id = medicos.user_id WHERE medicos.active = 0'
     );
 
     res.status(200).json({ status: 'success', activeMedicos, inactiveMedicos });
@@ -31,6 +31,9 @@ async function getMedicos(req, res) {
       error: 'Error interno del servidor al obtener los médicos.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 async function deleteMedico(req, res) {
@@ -50,6 +53,9 @@ async function deleteMedico(req, res) {
       message: 'Error interno del servidor al eliminar el médico.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 async function editMedico(req, res) {
@@ -96,6 +102,9 @@ async function editMedico(req, res) {
       message: 'Error interno del servidor al actualizar el médico.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 async function getMedico(req, res) {
@@ -122,6 +131,9 @@ async function getMedico(req, res) {
       message: 'Error interno del servidor al obtener el médico.',
     });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 async function createMedico(req, res) {
@@ -141,6 +153,9 @@ async function createMedico(req, res) {
       .status(500)
       .json({ error: 'Error interno del servidor al crear el médico.' });
   }
+  // finally {
+  //   pool.end();
+  // }
 }
 
 module.exports = {
