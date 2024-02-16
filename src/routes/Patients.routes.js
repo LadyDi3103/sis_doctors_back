@@ -11,8 +11,8 @@ const router = express.Router();
 // Obtener todos los pacientes
 router.get('/getPacientes', getPacientes);
 
-// E L I M I N A R  paciente por número de DOCUMENTO
-router.delete('/eliminarPaciente/:id', deletePaciente);
+// E L I M I N A R  paciente por número de id
+router.delete('/deletePaciente/:id', deletePaciente);
 
 router.get('/getPaciente/:id', getPaciente);
 
@@ -21,6 +21,6 @@ router.get('/getPaciente/:id', getPaciente);
 router.post('/createPaciente', createPaciente);
 
 // E D I T  P A C I E N T E S
-router.put('/editPaciente/:id', editPaciente);
+router.patch('/editPaciente/:id', editPaciente);
 
 module.exports = router;
