@@ -6,6 +6,9 @@ const dbConfig = {
   user: 'ug2iovfdkumobqit',
   password: 'KKQ0bqIpbrqbf3wlTILr',
   database: 'byjvth99hnme7egwpoar',
+  waitForConnections: true,
+  queueLimit: 0,
+  idleTimeout: 60000, // tiempo de espera de 1 minuto
 };
 
 const pool = mysql.createPool(dbConfig);

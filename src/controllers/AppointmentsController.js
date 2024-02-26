@@ -42,10 +42,13 @@ function createCita(req, res) {
 }
 function getCitas(req, res) {
   try {
-    pool.query('SELECT * FROM citas', (error, results, fields) => {
-      if (error) throw error;
-      res.json({ result: results }).status(200); // Enviar los resultados como respuesta JSON
-    });
+    pool.query(
+      'SELECT * FROM citas WHERE active = 1',
+      (error, results, fields) => {
+        if (error) throw error;
+        res.json({ result: results }).status(200); // Enviar los resultados como respuesta JSON
+      }
+    );
   } catch (error) {
     res
       .json({

@@ -2,19 +2,86 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const PORT = 3000;
+const pool = require('./database/db');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const JWTStrategy = require('passport-jwt').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
 
-const RoutesAuthentication = require('./routes/Authentication.routes');
+// Importar rutas
+const RoutesAuth = require('./routes/Authentication.routes');
 const RoutesCitas = require('./routes/Appointments.routes');
 const RoutesMedicos = require('./routes/Doctors.routes');
 const RoutesPacientes = require('./routes/Patients.routes');
-const { authToken } = require('./middlewares/AuthToken.middleware');
+const AdminsPacientes = require('./routes/Admins.router');
+const isAdmin = require('./middlewares/isAdmin.middleware');
+const generateToken = require('./utils/generateToken');
+
 app.use(cors());
 app.use(express.json());
 
-app.use('/auth', RoutesAuthentication);
-app.use('/citas', authToken, RoutesCitas);
-app.use('/medicos', authToken, RoutesMedicos);
-app.use('/pacientes', authToken, RoutesPacientes);
+// Configuración de Passport con la estrategia JWT
+passport.use(
+  new JWTStrategy(
+    {
+      jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+      secretOrKey: 'secret',
+    },
+    async function (jwtPayload, done) {
+      try {
+        const [rows] = await pool.execute(
+          'SELECT name,id,email,role_id FROM users WHERE id = ?',
+          [jwtPayload.id]
+        );
+        if (rows.length === 0) {
+          return done(null, false);
+        }
+        const user = rows[0];
+        const [role] = await pool.execute(
+          'SELECT role_name FROM roles WHERE role_id = ?',
+          [user.role_id]
+        );
+        console.log(role[0]);
+        user.role_name = role[0].role_name;
+        return done(null, user);
+      } catch (err) {
+        return done(err, false);
+      }
+    }
+  )
+);
+
+// Middleware de Passport para verificar la autenticación con JWT
+const requireAuth = passport.authenticate('jwt', { session: false });
+app.get('/verifyToken', requireAuth, (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Token valido',
+    user: req.user,
+  });
+});
+app.use('/auth', RoutesAuth);
+
+// Ejemplo de rutas protegidas que requieren autenticación y privilegios de administrador
+app.get('/admin/data', requireAuth, isAdmin, (req, res) => {
+  res.json({
+    message: 'Datos protegidos para administradores obtenidos correctamente.',
+    user: req.user,
+  });
+});
+app.get('/data', requireAuth, (req, res) => {
+  res.json({
+    message: 'Datos protegidos para administradores obtenidos correctamente.',
+    user: req.user,
+  });
+});
+
+// Ejemplo de rutas protegidas que requieren autenticación
+app.use('/citas', requireAuth, RoutesCitas);
+app.use('/medicos', requireAuth, RoutesMedicos);
+app.use('/pacientes', requireAuth, RoutesPacientes);
+app.use('/admins', requireAuth, isAdmin, AdminsPacientes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
