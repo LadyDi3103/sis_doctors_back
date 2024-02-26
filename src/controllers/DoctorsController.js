@@ -130,7 +130,7 @@ async function getMedico(req, res) {
       status: 'error',
       message: 'Error interno del servidor al obtener el médico.',
     });
-  }
+  } 
   // finally {
   //   pool.end();
   // }
